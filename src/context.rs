@@ -8,11 +8,11 @@ use crate::values::Values;
 /// structure that contains all the data at the count level, saves the variables, tokens, functions and keys
 /// Use example :
 /// ```
-///  use processor::context::Context;
+///  use procc_ll::context::Context;
 ///  let mut context = Context::new();
 ///  context.push_key("key".to_owned(), |token, prog| {
 ///     prog.exec(&token);
-///     processor::values::Values::Null
+///     procc_ll::values::Values::Null
 ///  });
 /// ```
 pub struct Context {

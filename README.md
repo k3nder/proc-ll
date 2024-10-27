@@ -123,6 +123,10 @@ fn main() {
         Values::Null
     });
     
+    main.borrow_mut().push_internal_token(StringToken::new());
+    main.borrow_mut().push_internal_token(NumberToken::new());
+    main.borrow_mut().push_internal_token(BooleanToken::new());
+    
     // Execute your tokens
     
     main.borrow_mut().exec("let str = \"hello world\"");

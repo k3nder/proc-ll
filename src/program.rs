@@ -13,7 +13,7 @@ lazy_static::lazy_static! {
 /// is a part of the program, contains the context, i is capable of executing
 /// Use example:
 /// ```
-/// use processor::program::{Program, ProgramBlock};
+/// use procc_ll::program::{Program, ProgramBlock};
 /// let mut program = Program::new();
 /// let main = program.create_block();
 ///
@@ -32,14 +32,14 @@ impl ProgramBlock {
     /// Executes a new token
     /// Use example:
     /// ```
-    /// use processor::program::{Program, ProgramBlock};
+    /// use procc_ll::program::{Program, ProgramBlock};
     ///
     /// let mut program = Program::new();
     /// let main = program.create_block();
     ///
     /// main.borrow_mut().push_internal_key("echo", |tok, prog| {
     ///     print!("{}" ,tok);
-    ///     processor::values::Values::Null
+    ///     procc_ll::values::Values::Null
     /// });
     /// main.borrow_mut().exec("echo hello world!!");
     pub fn exec(&mut self, token: &str) -> Values {
@@ -122,7 +122,7 @@ impl ProgramBlock {
 /// structure used to build ProgramBlock
 /// Use example:
 /// ```
-/// use processor::program::Program;
+/// use procc_ll::program::Program;
 /// let mut prog = Program::new();
 /// let program_block = prog.create_block();
 /// ```
