@@ -1,5 +1,5 @@
 [package]
-name = "processor"
+name = "procc-ll"
 version = "0.1.0"
 edition = "2021"
 description = "processor of tokens for rust"
