@@ -93,7 +93,7 @@ impl ProgramBlock {
         // if is not key
         debug!("[E] other tokens definition");
         debug!("[E] getting token definition index");
-        let index = measure_time!({self.context.token_index(&token).unwrap()});
+        let index = measure_time!({self.context.token_index(&token)});
         debug!("[E] getting token");
         let def_tok = measure_time!({self.context.get_token(index)});
 
