@@ -2,6 +2,10 @@
 name = "processor"
 version = "0.1.0"
 edition = "2021"
+description = "processor of tokens for rust"
+license = "Apache-2.0"
+authors = ["k3nder"]
+repository = "https://github.com/k3nder/processor"
 
 [dependencies]
 regex = "1.11.0"
