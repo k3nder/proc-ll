@@ -1,18 +1,17 @@
+use std::string::String;
 use regex::Regex;
-use crate::program::{Program, ProgramBlock};
+use crate::Program;
 use crate::token::Token;
 use crate::values::Values;
-use crate::values::Values::Null;
+use crate::values::Values::{Null};
 #[test]
 fn create_program() {
-    let mut program = Program::new();
-    let _ = program.create_block();
+    let _ = Program::new();
 }
 
 #[test]
 fn execute_key() {
-    let mut program = Program::new();
-    let main = program.create_block();
+    let main = Program::new();
     main.borrow_mut().push_internal_key("log", |token, _| {
         print!("{:?}", &token);
         Values::Null
@@ -23,8 +22,7 @@ fn execute_key() {
 
 #[test]
 fn execute_function() {
-    let mut program = Program::new();
-    let main = program.create_block();
+    let main = Program::new();
     main.borrow_mut().push_internal_function("echo", |token, _| {
         Values::String(token)
     });
@@ -42,7 +40,7 @@ fn execute_token() {
         }
     }
     impl Token for TokenT {
-        fn exec(&self, input: &str, _: &mut ProgramBlock) -> Option<Values> {
+        fn exec(&self, input: &str, _: &mut Program) -> Option<Values> {
             let re = Regex::new("//(.+)").unwrap();
 
             if let Some(cap) = re.captures(input) {
@@ -61,11 +59,44 @@ fn execute_token() {
     }
 
 
-    let mut program = Program::new();
-    let main = program.create_block();
+    let main = Program::new();
 
     main.borrow_mut().push_internal_token(TokenT::new());
 
     main.borrow_mut().exec("//hello world");
 
+}
+#[test]
+#[should_panic]
+fn sub_context() {
+    let program = Program::new();
+
+    program.borrow_mut().push_internal_key("let", |token, prog| {
+        let l: Vec<String> = token.split("=").map(|s| s.trim().to_string()).collect();
+
+        let name = &l[0];
+        let value = &l[1];
+
+        prog.push_internal_memory(name, Values::String(value.clone()));
+
+        Null
+    });
+
+    program.borrow_mut().push_internal_key("exec", |token, prog| {
+        let sub_p = prog.new_depth_context();
+
+        let x = sub_p.borrow_mut().exec(&token);
+
+        x
+    });
+
+    program.borrow_mut().push_internal_key("log", |token, prog| {
+        println!("{:?}", prog.exec(&token));
+        Null
+    });
+
+    program.borrow_mut().exec("let i = hola");
+    program.borrow_mut().exec("exec log $i");
+    program.borrow_mut().exec("exec let e = nooo");
+    program.borrow_mut().exec("log $e");
 }

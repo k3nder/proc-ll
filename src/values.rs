@@ -6,7 +6,6 @@ pub enum Values {
     Number(f64),
     Boolean(bool),
     Array(Vec<Values>),
-    CodeBlock(Vec<String>),
     Null
 }
 impl Debug for Values {
@@ -16,7 +15,6 @@ impl Debug for Values {
             Values::Number(v) => write!(f, "{}", v),
             Values::Boolean(v) => write!(f, "{}", v),
             Values::Array(v) => { write!(f, "[")?; v.fmt(f) },
-            Values::CodeBlock(_) => write!(f, "Code Block"),
             _ => { write!(f, "null") }
         }
     }
