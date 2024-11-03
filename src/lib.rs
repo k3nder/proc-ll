@@ -127,6 +127,9 @@ impl Program {
             debug!("[INF] infos {} {}", name, args);
             if !self.context.functions.borrow().contains_key(&name) { panic!("Function {} not found", name); }
             let func = { self.context.get_function(&name) };
+
+            let args = args.split(",").map(|s| self.exec(s)).collect::<Vec<Values>>();
+
             return (func)(args, self);
         }
 
