@@ -18,7 +18,7 @@ use crate::values::Values;
 #[derive(Clone)]
 pub struct Context {
     pub(crate) tokens: Rc<RefCell<Vec<Rc<RefCell<Box<dyn Token + 'static>>>>>>,
-    pub(crate) functions: Rc<RefCell<HashMap<String, Arc<dyn Fn(String, &mut Program) -> Values>>>>,
+    pub(crate) functions: Rc<RefCell<HashMap<String, Arc<dyn Fn(Vec<Values>, &mut Program) -> Values>>>>,
     pub(crate) memory: Rc<RefCell<HashMap<String , Values>>>,
     pub(crate) keys: Rc<RefCell<HashMap<String, Arc<dyn Fn(String, &mut Program) -> Values>>>>,
     pub(crate) sub_context: Option<Box<Context>>
@@ -65,7 +65,7 @@ impl Context {
         self.keys.borrow_mut().insert(key, Arc::new(tok));
     }
     /// Add a new function
-    pub fn push_function(&mut self, name: String, func: impl Fn(String, &mut Program) -> Values + 'static) {
+    pub fn push_function(&mut self, name: String, func: impl Fn(Vec<Values>, &mut Program) -> Values + 'static) {
         if let Some(subc) = &mut self.sub_context {
             if !self.functions.borrow().contains_key(&name) {
                 subc.push_function(name, func);
@@ -94,7 +94,7 @@ impl Context {
     pub fn get_key(&self, key: &str) -> Arc<dyn Fn(String, &mut Program) -> Values> {
         self.keys.borrow().get(key).unwrap().clone()
     }
-    pub fn get_function(&self, key: &str) -> Arc<dyn Fn(String, &mut Program) -> Values> {
+    pub fn get_function(&self, key: &str) -> Arc<dyn Fn(Vec<Values>, &mut Program) -> Values> {
         if !self.functions.borrow().contains_key(key) {
             if let Some(subc) = &self.sub_context {
                 if subc.functions.borrow().contains_key(key) {

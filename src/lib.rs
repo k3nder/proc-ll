@@ -155,7 +155,7 @@ impl Program {
         self.context.push_memory(key, val);
     }
     /// push a new function on the context
-    pub fn push_internal_function(&mut self, name: &str, func: impl Fn(String, &mut Program) -> Values + 'static) {
+    pub fn push_internal_function(&mut self, name: &str, func: impl Fn(Vec<Values>, &mut Program) -> Values + 'static) {
         self.context.push_function(name.to_owned(), func);
     }
     pub fn new_depth_context(&mut self) -> Rc<RefCell<Program>> {
