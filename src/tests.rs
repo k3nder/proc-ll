@@ -1,4 +1,5 @@
 use std::string::String;
+use log::debug;
 use regex::Regex;
 use crate::Program;
 use crate::token::Token;
@@ -19,15 +20,55 @@ fn execute_key() {
     let value = main.borrow_mut().exec("log  \"hello world\"");
     assert_eq!(value, Values::Null);
 }
+lazy_static::lazy_static! {
+    static ref STRING_REGEX: Regex = Regex::new("\"(.+)\"").unwrap();
+    static ref STRING_CONCAT_REGEX: Regex = Regex::new(r"\{\{([^{}]*)\}\}").unwrap();
+}
+pub struct StringToken;
+impl Token for StringToken {
+    fn exec(&self, input: &str, program: &mut Program) -> Option<Values> {
+        let cont = if let Some(c) = STRING_REGEX.captures(input) {
+            let mut c = c.get(0).map_or("", |m| m.as_str()).to_owned();
+            c.remove(0);
+            c.remove(c.len() - 1);
 
+            let result = STRING_CONCAT_REGEX.replace_all(&c, move |caps: &regex::Captures| {
+                // Obtenemos el contenido dentro de las llaves
+                let mut content = &mut caps[1].to_string();
+
+                debug!("STR CONCAT {}", content);
+
+                let res = program.exec(content);
+                let res = format!("{:?}", res);
+
+                res
+            });
+
+            result.to_string()
+        } else { "".to_owned() };
+        Some(Values::String(cont))
+    }
+
+    fn is_token(&self, c: &str) -> bool {
+        STRING_REGEX.is_match(c)
+    }
+}
+impl StringToken {
+    pub fn new() -> Box<Self> {
+        Box::new(StringToken {})
+    }
+}
 #[test]
 fn execute_function() {
     let main = Program::new();
+
+    main.borrow_mut().push_internal_token(StringToken::new());
     main.borrow_mut().push_internal_function("echo", |token, _| {
-        Values::String(token)
+        println!("{:?}", &token[0]);
+        token[0].clone()
     });
 
-    let res = main.borrow_mut().exec("echo(hello world)");
+    let res = main.borrow_mut().exec("echo(\"hello world\")");
     assert_eq!(res, Values::String("hello world".to_string()));
 }
 
