@@ -4,7 +4,6 @@ version = "0.2.0"
 edition = "2021"
 description = "processor of tokens for rust"
 license = "GPL-3"
-license-file = "LICENCE"
 authors = ["k3nder"]
 repository = "https://github.com/k3nder/processor"
 
