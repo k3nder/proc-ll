@@ -154,3 +154,9 @@ fn not_match_token() {
     let prog = Program::new();
     prog.borrow_mut().exec("not_found").unwrap();
 }
+#[test]
+#[should_panic]
+fn memory_def_not_found() {
+    let prog = Program::new();
+    prog.borrow_mut().exec("$not_found").unwrap();
+}
