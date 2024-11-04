@@ -4,7 +4,7 @@ use std::rc::Rc;
 use std::sync::Arc;
 use crate::token::Token;
 use crate::Program;
-use crate::values::Values;
+use crate::Values;
 /// structure that contains all the data at the count level, saves the variables, tokens, functions and keys
 /// Use example :
 /// ```
@@ -12,7 +12,7 @@ use crate::values::Values;
 ///  let mut context = Context::new();
 ///  context.push_key("key".to_owned(), |token, prog| {
 ///     prog.exec(&token);
-///     procc_ll::values::Values::Null
+///     procc_ll::Values::Null
 ///  });
 /// ```
 #[derive(Clone)]

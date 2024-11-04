@@ -1,16 +1,17 @@
 use std::cell::RefCell;
+use std::fmt::{Debug, Formatter};
 use std::rc::Rc;
-use log::debug;
+use log::{debug};
 use regex::Regex;
 use crate::context::Context;
+use crate::Errors::{FunctionNotFound, TokenNotMatched};
 use crate::token::Token;
-use crate::values::Values;
 
 pub mod context;
-pub mod values;
 pub mod token;
 #[cfg(test)]
 mod tests;
+
 ///measures the execution time and prints it on the screen,
 /// example:
 ///```
