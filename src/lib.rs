@@ -4,7 +4,7 @@ use std::rc::Rc;
 use log::{debug};
 use regex::Regex;
 use crate::context::Context;
-use crate::Errors::{FunctionNotFound, TokenNotMatched};
+use crate::Errors::{FunctionNotFound, MemoryDefNotFound, TokenNotMatched};
 use crate::token::Token;
 
 pub mod context;
@@ -109,13 +109,14 @@ impl Program {
             debug!("[E] token is reference");
             let name = token.replace("$", "").trim().to_string();
             debug!("[E] getting memory value: {}", &name);
+            if !self.context.has_memory(&name) { return Err(MemoryDefNotFound(format!("{} not found", name))); }
             return Ok(self.context.get_memory(&name));
         }
 
         // check functions
         debug!("[E] checking function");
         debug!("[REGEX] Matching regex");
-        if measure_time_debug!({FUNC_REGEX.is_match(&token)}) {
+        if measure_time_debug!({FUNC_REGEX.is_ma.gitignoretch(&token)}) {
             debug!("[V] token is function");
             debug!("[E] getting function infos");
             let (name, args): (String, String) = if let Some(cap) = FUNC_REGEX.captures(&token) {
@@ -191,6 +192,7 @@ impl Errors {
         let (name, message) = match self {
             TokenNotMatched(msg) => ("ERRORS::TOKEN_NOT_FOUND", msg),
             Errors::FunctionNotFound(msg) => ("ERRORS::FUNCTION_NOT_FOUND", msg),
+            MemoryDefNotFound(msg) => ("ERRORS::MEMORY_DEFINITION_NOT_FOUND", msg),
             _ => { ("ERRORS::UNKNOWN", &"UNKNOWN ERROR".to_owned()) }
         };
         format!("ERROR PROCESSING: {} : {}", name, message)
