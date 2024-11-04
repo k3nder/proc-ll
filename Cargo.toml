@@ -1,6 +1,6 @@
 [package]
 name = "procc-ll"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 description = "processor of tokens for rust"
 license = "GPL-3.0-only"
