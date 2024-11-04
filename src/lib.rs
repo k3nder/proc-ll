@@ -4,7 +4,7 @@ use std::rc::Rc;
 use log::{debug};
 use regex::Regex;
 use crate::context::Context;
-use crate::Errors::{FunctionNotFound, TokenNotMatched};
+use crate::Errors::{FunctionNotFound, MemoryDefNotFound, TokenNotMatched};
 use crate::token::Token;
 
 pub mod context;
@@ -109,6 +109,7 @@ impl Program {
             debug!("[E] token is reference");
             let name = token.replace("$", "").trim().to_string();
             debug!("[E] getting memory value: {}", &name);
+            if !self.context.has_memory(&name) { return Err(MemoryDefNotFound(format!("\"{}\" not found", name))); }
             return Ok(self.context.get_memory(&name));
         }
 
@@ -184,12 +185,14 @@ pub enum Errors {
     Non,
     TokenNotMatched(String),
     FunctionNotFound(String),
+    MemoryDefNotFound(String),
 }
 impl Errors {
     pub fn to_str(&self) -> String {
         let (name, message) = match self {
             TokenNotMatched(msg) => ("ERRORS::TOKEN_NOT_FOUND", msg),
             Errors::FunctionNotFound(msg) => ("ERRORS::FUNCTION_NOT_FOUND", msg),
+            MemoryDefNotFound(msg) => ("ERRORS::MEMORY_DEFINITION_NOT_FOUND", msg),
             _ => { ("ERRORS::UNKNOWN", &"UNKNOWN ERROR".to_owned()) }
         };
         format!("ERROR PROCESSING: {} : {}", name, message)

@@ -132,14 +132,14 @@ fn sub_context() {
     });
 
     program.borrow_mut().push_internal_key("log", |token, prog| {
-        println!("{:?}", prog.exec(&token));
+        println!("{:?}", prog.exec(&token).unwrap());
         Null
     });
 
-    program.borrow_mut().exec("let i = hola");
-    program.borrow_mut().exec("exec log $i");
-    program.borrow_mut().exec("exec let e = nooo");
-    program.borrow_mut().exec("log $e");
+    println!("{:?}", program.borrow_mut().exec("let i = hola").unwrap());
+    println!("{:?}", program.borrow_mut().exec("exec log $i").unwrap());
+    println!("{:?}", program.borrow_mut().exec("exec let e = nooo").unwrap());
+    println!("{:?}", program.borrow_mut().exec("log $e").unwrap());
 }
 
 #[test]
@@ -153,4 +153,10 @@ fn not_found_func() {
 fn not_match_token() {
     let prog = Program::new();
     prog.borrow_mut().exec("not_found").unwrap();
+}
+#[test]
+#[should_panic]
+fn memory_def_not_found() {
+    let prog = Program::new();
+    prog.borrow_mut().exec("$not_found").unwrap();
 }
