@@ -39,12 +39,12 @@ impl Context {
     ///
     /// # PANICS
     /// Return a panic if the token is not registered on the context
-    pub fn token_index(&self, tok: &str) -> usize {
+    pub fn token_index(&self, tok: &str) -> Option<usize> {
         for ix in 0..self.tokens.borrow().len() {
             let def_tok = &self.tokens.borrow()[ix];
-            if def_tok.borrow().is_token(&tok) { return ix; }
+            if def_tok.borrow().is_token(&tok) { return Some(ix); }
         }
-        panic!("Token \"{}\" no registered", tok);
+        None
     }
     /// Register a new token in te context
     pub fn push_token(&mut self, tok: Box<dyn Token>) {
