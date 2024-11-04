@@ -132,14 +132,14 @@ fn sub_context() {
     });
 
     program.borrow_mut().push_internal_key("log", |token, prog| {
-        println!("{:?}", prog.exec(&token));
+        println!("{:?}", prog.exec(&token).unwrap());
         Null
     });
 
-    program.borrow_mut().exec("let i = hola").unwrap();
-    program.borrow_mut().exec("exec log $i").unwrap();
-    program.borrow_mut().exec("exec let e = nooo").unwrap();
-    program.borrow_mut().exec("log $e").unwrap();
+    println!("{:?}", program.borrow_mut().exec("let i = hola").unwrap());
+    println!("{:?}", program.borrow_mut().exec("exec log $i").unwrap());
+    println!("{:?}", program.borrow_mut().exec("exec let e = nooo").unwrap());
+    println!("{:?}", program.borrow_mut().exec("log $e").unwrap());
 }
 
 #[test]
