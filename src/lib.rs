@@ -1,16 +1,17 @@
 use std::cell::RefCell;
+use std::fmt::{Debug, Formatter};
 use std::rc::Rc;
-use log::debug;
+use log::{debug};
 use regex::Regex;
 use crate::context::Context;
+use crate::Errors::{FunctionNotFound, TokenNotMatched};
 use crate::token::Token;
-use crate::values::Values;
 
 pub mod context;
-pub mod values;
 pub mod token;
 #[cfg(test)]
 mod tests;
+
 ///measures the execution time and prints it on the screen,
 /// example:
 ///```
@@ -80,10 +81,10 @@ impl Program {
     ///
     /// main.borrow_mut().push_internal_key("echo", |tok, prog| {
     ///     print!("{}" ,tok);
-    ///     procc_ll::values::Values::Null
+    ///     procc_ll::Values::Null
     /// });
     /// main.borrow_mut().exec("echo hello world!!");
-    pub fn exec(&mut self, token: &str) -> Values {
+    pub fn exec(&mut self, token: &str) -> Result<Values, Errors> {
 
         let token = token.trim();
         let token = token.replace("\n", "");
@@ -97,9 +98,9 @@ impl Program {
         if self.context.keys.borrow().contains_key(&split[0]) {
             debug!("[V] token is has key");
             let content = token.replace(&split[0], "").trim().to_string();
-            debug!("[E] getting function");
+            debug!("[E] getting key function");
             let func = measure_time_debug!({self.context.get_key(&split[0])});
-            return func(content, self);
+            return Ok(func(content, self));
         }
 
         // checking import
@@ -108,7 +109,7 @@ impl Program {
             debug!("[E] token is reference");
             let name = token.replace("$", "").trim().to_string();
             debug!("[E] getting memory value: {}", &name);
-            return self.context.get_memory(&name);
+            return Ok(self.context.get_memory(&name));
         }
 
         // check functions
@@ -124,13 +125,22 @@ impl Program {
                 let args = measure_time_debug!({cap.get(2).map_or("", |m| m.as_str()).to_string()});
                 (name, args)
             } else { ("".to_owned(), "".to_owned()) };
-            debug!("[INF] infos {} {}", name, args);
-            if !self.context.functions.borrow().contains_key(&name) { panic!("Function {} not found", name); }
+            debug!("[INF] function data {} {}", name, args);
+            if !self.context.functions.borrow().contains_key(&name) { return Err(FunctionNotFound(format!("function call \"{}\" but function \"{}\" not found", token, &name))); }
             let func = { self.context.get_function(&name) };
 
-            let args = args.split(",").map(|s| self.exec(s)).collect::<Vec<Values>>();
+            let mut pargs: Vec<Values> = Vec::new();
 
-            return (func)(args, self);
+            for arg in args.split(",") {
+                let res = self.exec(arg);
+                if res.is_err() {
+                    return Err(res.err().unwrap())
+                } else {
+                    pargs.push(res?);
+                }
+            }
+
+            return Ok((func)(pargs, self));
         }
 
         // if is not key
@@ -138,12 +148,13 @@ impl Program {
         debug!("[E] getting token definition index");
         let index = measure_time_debug!({self.context.token_index(&token)});
         debug!("[E] getting token");
-        let def_tok = measure_time_debug!({self.context.get_token(index)});
+        if let None = index { return Err(Errors::TokenNotMatched(String::from(format!("token \"{}\" not matched with the registered token samples", token)))); }
+        let def_tok = measure_time_debug!({self.context.get_token(index.unwrap())});
 
         debug!("[E] executing function");
         let val = measure_time_debug!({def_tok.borrow().exec(&token, self).unwrap()});
 
-        val
+        Ok(val)
     }
     /// Push a new token in the context
     pub fn push_internal_token(&mut self, token: Box<dyn Token>) {
@@ -166,5 +177,46 @@ impl Program {
         clone.context.sub_context = Some(Box::new(Context::new()));
 
         Rc::new(RefCell::new(clone))
+    }
+}
+#[derive(Clone)]
+pub enum Errors {
+    Non,
+    TokenNotMatched(String),
+    FunctionNotFound(String),
+}
+impl Errors {
+    pub fn to_str(&self) -> String {
+        let (name, message) = match self {
+            TokenNotMatched(msg) => ("ERRORS::TOKEN_NOT_FOUND", msg),
+            Errors::FunctionNotFound(msg) => ("ERRORS::FUNCTION_NOT_FOUND", msg),
+            _ => { ("ERRORS::UNKNOWN", &"UNKNOWN ERROR".to_owned()) }
+        };
+        format!("ERROR PROCESSING: {} : {}", name, message)
+    }
+}
+impl Debug for Errors {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&*self.to_str())
+    }
+}
+/// Values that retune the functions, tokens, keys i that also returns the exec of ProgramBlock
+#[derive(PartialEq, Clone)]
+pub enum Values {
+    String(String),
+    Number(f64),
+    Boolean(bool),
+    Array(Vec<Values>),
+    Null
+}
+impl Debug for Values {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Values::String(v) => write!(f, "{}", v),
+            Values::Number(v) => write!(f, "{}", v),
+            Values::Boolean(v) => write!(f, "{}", v),
+            Values::Array(v) => { write!(f, "[")?; v.fmt(f) },
+            _ => { write!(f, "null") }
+        }
     }
 }

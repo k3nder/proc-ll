@@ -3,8 +3,8 @@ use log::debug;
 use regex::Regex;
 use crate::Program;
 use crate::token::Token;
-use crate::values::Values;
-use crate::values::Values::{Null};
+use crate::Values;
+use crate::Values::{Null};
 #[test]
 fn create_program() {
     let _ = Program::new();
@@ -18,7 +18,7 @@ fn execute_key() {
         Values::Null
     });
     let value = main.borrow_mut().exec("log  \"hello world\"");
-    assert_eq!(value, Values::Null);
+    assert_eq!(value.unwrap(), Values::Null);
 }
 lazy_static::lazy_static! {
     static ref STRING_REGEX: Regex = Regex::new("\"(.+)\"").unwrap();
@@ -34,7 +34,7 @@ impl Token for StringToken {
 
             let result = STRING_CONCAT_REGEX.replace_all(&c, move |caps: &regex::Captures| {
                 // Obtenemos el contenido dentro de las llaves
-                let mut content = &mut caps[1].to_string();
+                let content = &mut caps[1].to_string();
 
                 debug!("STR CONCAT {}", content);
 
@@ -69,7 +69,7 @@ fn execute_function() {
     });
 
     let res = main.borrow_mut().exec("echo(\"hello world\")");
-    assert_eq!(res, Values::String("hello world".to_string()));
+    assert_eq!(res.unwrap(), Values::String("hello world".to_string()));
 }
 
 #[test]
@@ -128,7 +128,7 @@ fn sub_context() {
 
         let x = sub_p.borrow_mut().exec(&token);
 
-        x
+        x.unwrap()
     });
 
     program.borrow_mut().push_internal_key("log", |token, prog| {
@@ -140,4 +140,17 @@ fn sub_context() {
     program.borrow_mut().exec("exec log $i");
     program.borrow_mut().exec("exec let e = nooo");
     program.borrow_mut().exec("log $e");
+}
+
+#[test]
+#[should_panic]
+fn not_found_func() {
+    let prog = Program::new();
+    prog.borrow_mut().exec("not(found)").unwrap();
+}
+#[test]
+#[should_panic]
+fn not_match_token() {
+    let prog = Program::new();
+    prog.borrow_mut().exec("not_found").unwrap();
 }
