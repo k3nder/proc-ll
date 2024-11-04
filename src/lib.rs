@@ -80,10 +80,10 @@ impl Program {
     ///
     /// main.borrow_mut().push_internal_key("echo", |tok, prog| {
     ///     print!("{}" ,tok);
-    ///     procc_ll::values::Values::Null
+    ///     procc_ll::Values::Null
     /// });
     /// main.borrow_mut().exec("echo hello world!!");
-    pub fn exec(&mut self, token: &str) -> Values {
+    pub fn exec(&mut self, token: &str) -> Result<Values, Errors> {
 
         let token = token.trim();
         let token = token.replace("\n", "");
@@ -97,9 +97,9 @@ impl Program {
         if self.context.keys.borrow().contains_key(&split[0]) {
             debug!("[V] token is has key");
             let content = token.replace(&split[0], "").trim().to_string();
-            debug!("[E] getting function");
+            debug!("[E] getting key function");
             let func = measure_time_debug!({self.context.get_key(&split[0])});
-            return func(content, self);
+            return Ok(func(content, self));
         }
 
         // checking import
@@ -108,7 +108,7 @@ impl Program {
             debug!("[E] token is reference");
             let name = token.replace("$", "").trim().to_string();
             debug!("[E] getting memory value: {}", &name);
-            return self.context.get_memory(&name);
+            return Ok(self.context.get_memory(&name));
         }
 
         // check functions
@@ -124,13 +124,22 @@ impl Program {
                 let args = measure_time_debug!({cap.get(2).map_or("", |m| m.as_str()).to_string()});
                 (name, args)
             } else { ("".to_owned(), "".to_owned()) };
-            debug!("[INF] infos {} {}", name, args);
-            if !self.context.functions.borrow().contains_key(&name) { panic!("Function {} not found", name); }
+            debug!("[INF] function data {} {}", name, args);
+            if !self.context.functions.borrow().contains_key(&name) { return Err(FunctionNotFound(format!("function call \"{}\" but function \"{}\" not found", token, &name))); }
             let func = { self.context.get_function(&name) };
 
-            let args = args.split(",").map(|s| self.exec(s)).collect::<Vec<Values>>();
+            let mut pargs: Vec<Values> = Vec::new();
 
-            return (func)(args, self);
+            for arg in args.split(",") {
+                let res = self.exec(arg);
+                if res.is_err() {
+                    return Err(res.err().unwrap())
+                } else {
+                    pargs.push(res?);
+                }
+            }
+
+            return Ok((func)(pargs, self));
         }
 
         // if is not key
@@ -138,12 +147,13 @@ impl Program {
         debug!("[E] getting token definition index");
         let index = measure_time_debug!({self.context.token_index(&token)});
         debug!("[E] getting token");
-        let def_tok = measure_time_debug!({self.context.get_token(index)});
+        if let None = index { return Err(Errors::TokenNotMatched(String::from(format!("token \"{}\" not matched with the registered token samples", token)))); }
+        let def_tok = measure_time_debug!({self.context.get_token(index.unwrap())});
 
         debug!("[E] executing function");
         let val = measure_time_debug!({def_tok.borrow().exec(&token, self).unwrap()});
 
-        val
+        Ok(val)
     }
     /// Push a new token in the context
     pub fn push_internal_token(&mut self, token: Box<dyn Token>) {
