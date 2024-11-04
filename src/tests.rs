@@ -136,10 +136,10 @@ fn sub_context() {
         Null
     });
 
-    program.borrow_mut().exec("let i = hola");
-    program.borrow_mut().exec("exec log $i");
-    program.borrow_mut().exec("exec let e = nooo");
-    program.borrow_mut().exec("log $e");
+    program.borrow_mut().exec("let i = hola").unwrap();
+    program.borrow_mut().exec("exec log $i").unwrap();
+    program.borrow_mut().exec("exec let e = nooo").unwrap();
+    program.borrow_mut().exec("log $e").unwrap();
 }
 
 #[test]
