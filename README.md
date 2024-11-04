@@ -130,7 +130,6 @@ fn main() {
     main.borrow_mut().exec("let str = \"hello world\"");
     main.borrow_mut().exec("let num = 1");
     main.borrow_mut().exec("let bo = true");
-    
     main.borrow_mut().exec("echo $str");
     main.borrow_mut().exec("echo $num");
     main.borrow_mut().exec("echo $bo");
