@@ -109,14 +109,14 @@ impl Program {
             debug!("[E] token is reference");
             let name = token.replace("$", "").trim().to_string();
             debug!("[E] getting memory value: {}", &name);
-            if !self.context.has_memory(&name) { return Err(MemoryDefNotFound(format!("{} not found", name))); }
+            if !self.context.has_memory(&name) { return Err(MemoryDefNotFound(format!("\"{}\" not found", name))); }
             return Ok(self.context.get_memory(&name));
         }
 
         // check functions
         debug!("[E] checking function");
         debug!("[REGEX] Matching regex");
-        if measure_time_debug!({FUNC_REGEX.is_ma.gitignoretch(&token)}) {
+        if measure_time_debug!({FUNC_REGEX.is_match(&token)}) {
             debug!("[V] token is function");
             debug!("[E] getting function infos");
             let (name, args): (String, String) = if let Some(cap) = FUNC_REGEX.captures(&token) {
