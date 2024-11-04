@@ -184,6 +184,7 @@ pub enum Errors {
     Non,
     TokenNotMatched(String),
     FunctionNotFound(String),
+    MemoryDefNotFound(String),
 }
 impl Errors {
     pub fn to_str(&self) -> String {
