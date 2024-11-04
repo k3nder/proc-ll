@@ -168,3 +168,44 @@ impl Program {
         Rc::new(RefCell::new(clone))
     }
 }
+#[derive(Clone)]
+pub enum Errors {
+    Non,
+    TokenNotMatched(String),
+    FunctionNotFound(String),
+}
+impl Errors {
+    pub fn to_str(&self) -> String {
+        let (name, message) = match self {
+            TokenNotMatched(msg) => ("ERRORS::TOKEN_NOT_FOUND", msg),
+            Errors::FunctionNotFound(msg) => ("ERRORS::FUNCTION_NOT_FOUND", msg),
+            _ => { ("ERRORS::UNKNOWN", &"UNKNOWN ERROR".to_owned()) }
+        };
+        format!("ERROR PROCESSING: {} : {}", name, message)
+    }
+}
+impl Debug for Errors {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&*self.to_str())
+    }
+}
+/// Values that retune the functions, tokens, keys i that also returns the exec of ProgramBlock
+#[derive(PartialEq, Clone)]
+pub enum Values {
+    String(String),
+    Number(f64),
+    Boolean(bool),
+    Array(Vec<Values>),
+    Null
+}
+impl Debug for Values {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Values::String(v) => write!(f, "{}", v),
+            Values::Number(v) => write!(f, "{}", v),
+            Values::Boolean(v) => write!(f, "{}", v),
+            Values::Array(v) => { write!(f, "[")?; v.fmt(f) },
+            _ => { write!(f, "null") }
+        }
+    }
+}
